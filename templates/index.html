@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Review Detector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f1a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        h1 { font-size: 2rem; margin-bottom: 8px; color: #a78bfa; }
+        p.subtitle { color: #888; margin-bottom: 6px; font-size: 0.95rem; }
+        .counter {
+            color: #555;
+            font-size: 0.8rem;
+            margin-bottom: 24px;
+        }
+        .counter span { color: #a78bfa; font-weight: 600; }
+        .card {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        select, textarea {
+            width: 100%;
+            background: #0f0f1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #fff;
+            padding: 12px;
+            font-size: 1rem;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        select:focus, textarea:focus { border-color: #a78bfa; }
+        textarea { height: 150px; resize: vertical; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #a78bfa;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #7c3aed; }
+        label { display: block; margin-bottom: 8px; color: #aaa; font-size: 0.9rem; }
+
+        .warning-box {
+            margin-top: 20px;
+            padding: 14px 18px;
+            background: rgba(234,179,8,0.15);
+            border: 1px solid #eab308;
+            border-radius: 10px;
+            color: #eab308;
+            font-size: 0.95rem;
+        }
+
+        .result-box {
+            margin-top: 24px;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .result-label {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .opinion {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .confidence-text {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 16px;
+        }
+
+        .confidence-bar-wrap {
+            background: #0f0f1a;
+            border-radius: 999px;
+            height: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .confidence-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+
+        .indicators {
+            text-align: left;
+            margin-top: 8px;
+        }
+        .indicators p {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .indicator-item {
+            font-size: 0.88rem;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            margin-bottom: 5px;
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Fake Review Detector</h1>
+    <p class="subtitle">Detect fake reviews from Amazon, Flipkart, IMDb & BookMyShow</p>
+    <p class="counter">Reviews analyzed this session: <span>{{ total_analyzed }}</span></p>
+
+    <div class="card">
+        <form method="POST">
+            <label>Select Platform</label>
+            <select name="platform">
+                <option value="Amazon" {% if platform == 'Amazon' %}selected{% endif %}>🛒 Amazon</option>
+                <option value="Flipkart" {% if platform == 'Flipkart' %}selected{% endif %}>🛍️ Flipkart</option>
+                <option value="IMDb" {% if platform == 'IMDb' %}selected{% endif %}>🎬 IMDb</option>
+                <option value="BookMyShow" {% if platform == 'BookMyShow' %}selected{% endif %}>🎟️ BookMyShow</option>
+            </select>
+
+            <label>Paste Review Here</label>
+            <textarea name="review" placeholder="Paste any product or movie review here...">{{ review_text }}</textarea>
+
+            <button type="submit">🔍 Analyze Review</button>
+        </form>
+
+        {% if warning %}
+        <div class="warning-box">{{ warning }}</div>
+        {% endif %}
+
+        {% if result %}
+        <div class="result-box" style="background: {{ bg }}; border: 1px solid {{ border }};">
+            <div class="result-label" style="color: {{ color }};">
+                {{ '❌ FAKE REVIEW' if result == 'FAKE' else '✅ GENUINE REVIEW' }}
+            </div>
+            <div class="opinion" style="color: {{ color }};">{{ opinion }}</div>
+            <div class="confidence-text">
+                Confidence: <strong>{{ confidence }}%</strong> &nbsp;|&nbsp; Platform: <strong>{{ platform }}</strong>
+            </div>
+
+            <div class="confidence-bar-wrap">
+                <div class="confidence-bar-fill"
+                     style="width: {{ confidence }}%; background: {{ color }};"></div>
+            </div>
+
+            {% if indicators %}
+            <div class="indicators">
+                <p>🔎 Suspicious Signals Found:</p>
+                {% for item in indicators %}
+                <div class="indicator-item">{{ item }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
